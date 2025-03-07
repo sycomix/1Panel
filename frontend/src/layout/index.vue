@@ -2,7 +2,7 @@
     <div :class="classObj" class="app-wrapper" v-loading="loading" :element-loading-text="loadingText" fullscreen>
         <div v-if="classObj.mobile && classObj.openSidebar" class="drawer-bg" @click="handleClickOutside" />
         <div class="app-sidebar" v-if="!globalStore.isFullScreen">
-            <Sidebar @menu-click="handleMenuClick" :menu-router="!classObj.openMenuTabs" @open-task="openTask" />
+            <Sidebar @menu-click="handleMenuClick" :menu-router="!classObj.openMenuTabs" />
         </div>
 
         <div class="main-container">
@@ -10,7 +10,6 @@
             <Tabs v-if="classObj.openMenuTabs" />
             <app-main :keep-alive="classObj.openMenuTabs ? tabsStore.cachedTabs : null" class="app-main" />
             <Footer class="app-footer" v-if="!globalStore.isFullScreen" />
-            <TaskList ref="taskListRef" />
         </div>
     </div>
 </template>
@@ -24,15 +23,10 @@ import { DeviceType } from '@/enums/app';
 import { getSystemAvailable } from '@/api/modules/setting';
 import { useRoute, useRouter } from 'vue-router';
 import { useTheme } from '@/hooks/use-theme';
-import TaskList from '@/components/task-list/index.vue';
 const { switchTheme } = useTheme();
 
 useResize();
 
-const taskListRef = ref();
-const openTask = () => {
-    taskListRef.value.acceptParams();
-};
 const router = useRouter();
 const route = useRoute();
 const menuStore = MenuStore();
@@ -200,17 +194,8 @@ onMounted(() => {
     }
     &.hideSidebar {
         .app-sidebar {
-            pointer-events: none;
-            transition-duration: 0.3s;
-            transform: translate3d(calc(0px - var(--panel-menu-width)), 0, 0);
+            transform: translate3d(-var(--panel-menu-width), 0, 0);
         }
-    }
-}
-
-.withoutAnimation {
-    .main-container,
-    .sidebar-container {
-        transition: none;
     }
 }
 </style>
