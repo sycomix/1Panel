@@ -165,8 +165,10 @@ check_and_install_deps
 # Use local project directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build"
-CORE_NAME="1panel-core"
-AGENT_NAME="1panel-agent"
+APP_NAME="1panel"
+WEB_PATH="${SCRIPT_DIR}/frontend"
+SERVER_PATH="${SCRIPT_DIR}/backend"
+MAIN="${SCRIPT_DIR}/cmd/server/main.go"
 
 # Clean and create build directory
 echo "Preparing build environment..."
@@ -175,7 +177,7 @@ mkdir -p "${BUILD_DIR}"
 
 # Build frontend
 echo "Building frontend..."
-cd "${SCRIPT_DIR}/frontend" || exit 1
+cd "${WEB_PATH}" || exit 1
 if ! npm install; then
     echo "Failed to install frontend dependencies"
     exit 1
@@ -185,30 +187,22 @@ if ! npm run build:pro; then
     exit 1
 fi
 
-# Build core
-echo "Building core component..."
-cd "${SCRIPT_DIR}/core" || exit 1
-if ! GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${CORE_NAME}" cmd/server/main.go; then
-    echo "Failed to build core component"
-    exit 1
-fi
-
-# Build agent
-echo "Building agent component..."
-cd "${SCRIPT_DIR}/agent" || exit 1
-if ! GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${AGENT_NAME}" cmd/server/main.go; then
-    echo "Failed to build agent component"
+# Build backend
+echo "Building backend component..."
+cd "${SERVER_PATH}" || exit 1
+if ! GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${APP_NAME}" "${MAIN}"; then
+    echo "Failed to build backend component"
     exit 1
 fi
 
 # Copy necessary files
 echo "Preparing installation files..."
-if ! cp -r "${SCRIPT_DIR}/frontend/dist" "${BUILD_DIR}/web"; then
+if ! cp -r "${WEB_PATH}/dist" "${BUILD_DIR}/web"; then
     echo "Failed to copy frontend dist files"
     exit 1
 fi
-if ! cp -r "${SCRIPT_DIR}/core/scripts" "${BUILD_DIR}/scripts"; then
-    echo "Failed to copy core scripts"
+if ! cp -r "${SERVER_PATH}/scripts" "${BUILD_DIR}/scripts"; then
+    echo "Failed to copy backend scripts"
     exit 1
 fi
 
@@ -237,7 +231,7 @@ if ! cp -r ./* "${INSTALL_DIR}/"; then
     exit 1
 fi
 
-# Create systemd service files
+# Create systemd service file
 cat > "${SYSTEMD_DIR}/1panel.service" << 'EOFS'
 [Unit]
 Description=1Panel Service
@@ -245,22 +239,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/1panel/1panel-core
-WorkingDirectory=/usr/local/1panel
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOFS
-
-cat > "${SYSTEMD_DIR}/1panel-agent.service" << 'EOFS'
-[Unit]
-Description=1Panel Agent Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/1panel/1panel-agent
+ExecStart=/usr/local/1panel/1panel
 WorkingDirectory=/usr/local/1panel
 Restart=always
 
@@ -269,12 +248,8 @@ WantedBy=multi-user.target
 EOFS
 
 # Set permissions
-if ! chmod +x "${INSTALL_DIR}/1panel-core"; then
-    echo "Failed to set permissions for core"
-    exit 1
-fi
-if ! chmod +x "${INSTALL_DIR}/1panel-agent"; then
-    echo "Failed to set permissions for agent"
+if ! chmod +x "${INSTALL_DIR}/1panel"; then
+    echo "Failed to set permissions for 1panel"
     exit 1
 fi
 
@@ -289,20 +264,9 @@ if ! sudo systemctl enable 1panel.service; then
     exit 1
 fi
 
-if ! sudo systemctl enable 1panel-agent.service; then
-    echo "Error: Failed to enable 1panel-agent service. Please check your permissions."
-    exit 1
-fi
-
 if ! sudo systemctl start 1panel.service; then
     echo "Error: Failed to start 1panel service. Please check your permissions."
     echo "You can try running: sudo systemctl start 1panel.service"
-    exit 1
-fi
-
-if ! sudo systemctl start 1panel-agent.service; then
-    echo "Error: Failed to start 1panel-agent service. Please check your permissions."
-    echo "You can try running: sudo systemctl start 1panel-agent service"
     exit 1
 fi
 
