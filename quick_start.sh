@@ -163,7 +163,7 @@ echo "Checking and installing dependencies..."
 check_and_install_deps
 
 # Use local project directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build"
 CORE_NAME="1panel-core"
 AGENT_NAME="1panel-agent"
@@ -175,24 +175,42 @@ mkdir -p "${BUILD_DIR}"
 
 # Build frontend
 echo "Building frontend..."
-cd "${SCRIPT_DIR}/frontend"
-npm install
-npm run build:pro
+cd "${SCRIPT_DIR}/frontend" || exit 1
+if ! npm install; then
+    echo "Failed to install frontend dependencies"
+    exit 1
+fi
+if ! npm run build:pro; then
+    echo "Failed to build frontend"
+    exit 1
+fi
 
 # Build core
 echo "Building core component..."
-cd "${SCRIPT_DIR}/core"
-GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${CORE_NAME}" cmd/server/main.go
+cd "${SCRIPT_DIR}/core" || exit 1
+if ! GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${CORE_NAME}" cmd/server/main.go; then
+    echo "Failed to build core component"
+    exit 1
+fi
 
 # Build agent
 echo "Building agent component..."
-cd "${SCRIPT_DIR}/agent"
-GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${AGENT_NAME}" cmd/server/main.go
+cd "${SCRIPT_DIR}/agent" || exit 1
+if ! GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${AGENT_NAME}" cmd/server/main.go; then
+    echo "Failed to build agent component"
+    exit 1
+fi
 
 # Copy necessary files
 echo "Preparing installation files..."
-cp -r "${SCRIPT_DIR}/frontend/dist" "${BUILD_DIR}/web"
-cp -r "${SCRIPT_DIR}/core/scripts" "${BUILD_DIR}/scripts"
+if ! cp -r "${SCRIPT_DIR}/frontend/dist" "${BUILD_DIR}/web"; then
+    echo "Failed to copy frontend dist files"
+    exit 1
+fi
+if ! cp -r "${SCRIPT_DIR}/core/scripts" "${BUILD_DIR}/scripts"; then
+    echo "Failed to copy core scripts"
+    exit 1
+fi
 
 # Generate install script
 cat > "${BUILD_DIR}/install.sh" << 'EOF'
@@ -204,11 +222,20 @@ DATA_DIR="/usr/local/1panel/data"
 SYSTEMD_DIR="/etc/systemd/system"
 
 # Create installation directories
-mkdir -p "${INSTALL_DIR}"
-mkdir -p "${DATA_DIR}"
+if ! mkdir -p "${INSTALL_DIR}"; then
+    echo "Failed to create installation directory"
+    exit 1
+fi
+if ! mkdir -p "${DATA_DIR}"; then
+    echo "Failed to create data directory"
+    exit 1
+fi
 
 # Copy files
-cp -r ./* "${INSTALL_DIR}/"
+if ! cp -r ./* "${INSTALL_DIR}/"; then
+    echo "Failed to copy installation files"
+    exit 1
+fi
 
 # Create systemd service files
 cat > "${SYSTEMD_DIR}/1panel.service" << 'EOFS'
@@ -242,8 +269,14 @@ WantedBy=multi-user.target
 EOFS
 
 # Set permissions
-chmod +x "${INSTALL_DIR}/1panel-core"
-chmod +x "${INSTALL_DIR}/1panel-agent"
+if ! chmod +x "${INSTALL_DIR}/1panel-core"; then
+    echo "Failed to set permissions for core"
+    exit 1
+fi
+if ! chmod +x "${INSTALL_DIR}/1panel-agent"; then
+    echo "Failed to set permissions for agent"
+    exit 1
+fi
 
 # Enable and start services
 if ! sudo systemctl daemon-reload; then
@@ -282,5 +315,8 @@ chmod +x "${BUILD_DIR}/install.sh"
 
 # Run installation
 echo "Starting installation..."
-cd "${BUILD_DIR}"
-/bin/bash install.sh
+cd "${BUILD_DIR}" || exit 1
+if ! /bin/bash install.sh; then
+    echo "Installation failed. Please check the error messages above."
+    exit 1
+fi

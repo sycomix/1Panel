@@ -1,5 +1,5 @@
 import { getSettingInfo } from '@/api/modules/setting';
-import { useTheme } from '@/global/use-theme';
+import { useTheme } from '@/hooks/use-theme';
 import { GlobalStore } from '@/store';
 const globalStore = GlobalStore();
 const { switchTheme } = useTheme();

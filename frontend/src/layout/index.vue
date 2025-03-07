@@ -23,7 +23,7 @@ import { GlobalStore, MenuStore, TabsStore } from '@/store';
 import { DeviceType } from '@/enums/app';
 import { getSystemAvailable } from '@/api/modules/setting';
 import { useRoute, useRouter } from 'vue-router';
-import { useTheme } from '@/global/use-theme';
+import { useTheme } from '@/hooks/use-theme';
 import TaskList from '@/components/task-list/index.vue';
 const { switchTheme } = useTheme();
 
