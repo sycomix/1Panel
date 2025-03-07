@@ -177,11 +177,22 @@ mkdir -p "${BUILD_DIR}"
 
 # Build frontend
 echo "Building frontend..."
-cd "${WEB_PATH}" || exit 1
-if ! npm install; then
-    echo "Failed to install frontend dependencies"
+cd "${WEB_PATH}" || {
+    echo "Failed to change to frontend directory"
     exit 1
+}
+
+# Ensure node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "Installing frontend dependencies..."
+    if ! npm install; then
+        echo "Failed to install frontend dependencies"
+        exit 1
+    fi
 fi
+
+# Run the build
+echo "Running frontend build..."
 if ! npm run build:pro; then
     echo "Failed to build frontend"
     exit 1
@@ -189,7 +200,12 @@ fi
 
 # Build backend
 echo "Building backend component..."
-cd "${SERVER_PATH}" || exit 1
+cd "${SCRIPT_DIR}" || {
+    echo "Failed to change to project root directory"
+    exit 1
+}
+
+echo "Building with GOOS=linux GOARCH=${architecture}"
 if ! GOOS=linux GOARCH=${architecture} go build -trimpath -ldflags '-s -w' -o "${BUILD_DIR}/${APP_NAME}" "${MAIN}"; then
     echo "Failed to build backend component"
     exit 1
@@ -197,12 +213,29 @@ fi
 
 # Copy necessary files
 echo "Preparing installation files..."
-if ! cp -r "${WEB_PATH}/dist" "${BUILD_DIR}/web"; then
-    echo "Failed to copy frontend dist files"
+
+# Create web directory if it doesn't exist
+mkdir -p "${BUILD_DIR}/web"
+
+# Copy frontend build output
+if [ -d "${SCRIPT_DIR}/cmd/server/web" ]; then
+    if ! cp -r "${SCRIPT_DIR}/cmd/server/web"/* "${BUILD_DIR}/web/"; then
+        echo "Failed to copy frontend build files"
+        exit 1
+    fi
+else
+    echo "Frontend build directory not found at ${SCRIPT_DIR}/cmd/server/web"
     exit 1
 fi
-if ! cp -r "${SERVER_PATH}/scripts" "${BUILD_DIR}/scripts"; then
-    echo "Failed to copy backend scripts"
+
+# Copy backend scripts
+if [ -d "${SERVER_PATH}/scripts" ]; then
+    if ! cp -r "${SERVER_PATH}/scripts" "${BUILD_DIR}/"; then
+        echo "Failed to copy backend scripts"
+        exit 1
+    fi
+else
+    echo "Backend scripts directory not found at ${SERVER_PATH}/scripts"
     exit 1
 fi
 
@@ -279,7 +312,11 @@ chmod +x "${BUILD_DIR}/install.sh"
 
 # Run installation
 echo "Starting installation..."
-cd "${BUILD_DIR}" || exit 1
+cd "${BUILD_DIR}" || {
+    echo "Failed to change to build directory"
+    exit 1
+}
+
 if ! /bin/bash install.sh; then
     echo "Installation failed. Please check the error messages above."
     exit 1
