@@ -246,11 +246,32 @@ chmod +x "${INSTALL_DIR}/1panel-core"
 chmod +x "${INSTALL_DIR}/1panel-agent"
 
 # Enable and start services
-systemctl daemon-reload
-systemctl enable 1panel.service
-systemctl enable 1panel-agent.service
-systemctl start 1panel.service
-systemctl start 1panel-agent.service
+if ! sudo systemctl daemon-reload; then
+    echo "Error: Failed to reload systemd daemon. Please check your permissions."
+    exit 1
+fi
+
+if ! sudo systemctl enable 1panel.service; then
+    echo "Error: Failed to enable 1panel service. Please check your permissions."
+    exit 1
+fi
+
+if ! sudo systemctl enable 1panel-agent.service; then
+    echo "Error: Failed to enable 1panel-agent service. Please check your permissions."
+    exit 1
+fi
+
+if ! sudo systemctl start 1panel.service; then
+    echo "Error: Failed to start 1panel service. Please check your permissions."
+    echo "You can try running: sudo systemctl start 1panel.service"
+    exit 1
+fi
+
+if ! sudo systemctl start 1panel-agent.service; then
+    echo "Error: Failed to start 1panel-agent service. Please check your permissions."
+    echo "You can try running: sudo systemctl start 1panel-agent service"
+    exit 1
+fi
 
 echo "1Panel installation completed successfully!"
 echo "You can access the panel through your browser"

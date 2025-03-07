@@ -37,13 +37,6 @@ export async function getXpackSetting() {
     }
 }
 
-const loadDataFromDB = async () => {
-    const res = await getSettingInfo();
-    document.title = res.data.panelName;
-    globalStore.entrance = res.data.securityEntrance;
-    globalStore.setOpenMenuTabs(res.data.menuTabs === 'Enable');
-};
-
 export async function getXpackSettingForTheme() {
     let searchXSetting;
     const xpackModules = import.meta.glob('../xpack/api/modules/setting.ts', { eager: true });
