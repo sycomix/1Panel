@@ -1,5 +1,6 @@
 import { RouteRecordRaw } from 'vue-router';
 import { DeviceType } from '@/enums/app';
+
 export interface ThemeConfigProp {
     panelName: string;
     primary: string;
@@ -32,14 +33,7 @@ export interface GlobalState {
     currentRedisDB: string;
     showEntranceWarn: boolean;
     defaultNetwork: string;
-
-    isProductPro: boolean;
-    isIntl: boolean;
-    productProExpires: number;
-    isMasterProductPro: boolean;
-
     errStatus: string;
-
     currentNode: string;
 }
 

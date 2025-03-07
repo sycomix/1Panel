@@ -23,7 +23,6 @@ import { GlobalStore, MenuStore, TabsStore } from '@/store';
 import { DeviceType } from '@/enums/app';
 import { getSystemAvailable } from '@/api/modules/setting';
 import { useRoute, useRouter } from 'vue-router';
-import { loadMasterProductProFromDB, loadProductProFromDB } from '@/utils/xpack';
 import { useTheme } from '@/global/use-theme';
 import TaskList from '@/components/task-list/index.vue';
 const { switchTheme } = useTheme();
@@ -106,8 +105,6 @@ onMounted(() => {
     }
 
     loadStatus();
-    loadProductProFromDB();
-    loadMasterProductProFromDB();
     globalStore.isFullScreen = false;
 
     const mqList = window.matchMedia('(prefers-color-scheme: dark)');

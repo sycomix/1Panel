@@ -2,8 +2,6 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { Layout } from '@/routers/constant';
 
 let modules: Record<string, RouteRecordRaw> = import.meta.glob('./modules/*.ts', { eager: true });
-const xpackModules: Record<string, RouteRecordRaw> = import.meta.glob('../xpack/routers/*.ts', { eager: true });
-modules = { ...modules, ...xpackModules };
 
 const homeRouter: RouteRecordRaw = {
     path: '/',
