@@ -2,11 +2,10 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { Layout } from '@/routers/constant';
 
 let modules: Record<string, RouteRecordRaw> = import.meta.glob('./modules/*.ts', { eager: true });
-const xpackModules: Record<string, RouteRecordRaw> = import.meta.glob('../xpack/routers/*.ts', { eager: true });
-modules = { ...modules, ...xpackModules };
 
 const homeRouter: RouteRecordRaw = {
     path: '/',
+    name: 'Home-Menu',
     component: Layout,
     redirect: '/',
     meta: {
@@ -75,7 +74,7 @@ export const routes: RouteRecordRaw[] = [
     {
         path: '/:code?',
         name: 'entrance',
-        component: () => import('@/views/login/entrance/index.vue'),
+        component: () => import('@/views/login/index.vue'),
         props: true,
     },
     ...routerArray,

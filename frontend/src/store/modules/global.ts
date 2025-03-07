@@ -35,21 +35,14 @@ const GlobalStore = defineStore({
         currentRedisDB: '',
         showEntranceWarn: true,
         defaultNetwork: 'all',
-
-        isProductPro: false,
-        isIntl: false,
-        isTrial: false,
-        productProExpires: 0,
-        licenseVerify: '',
-
         errStatus: '',
+        currentNode: 'local',
     }),
     getters: {
         isDarkTheme: (state) =>
             state.themeConfig.theme === 'dark' ||
             (state.themeConfig.theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches),
-        isDarkGoldTheme: (state) => state.themeConfig.primary === '#F0BE96' && state.isProductPro,
-        docsUrl: (state) => (state.isIntl ? 'https://docs.1panel.pro' : 'https://1panel.cn/docs'),
+        isMaster: (state) => state.currentNode === 'local',
     },
     actions: {
         setOpenMenuTabs(openMenuTabs: boolean) {

@@ -1,5 +1,6 @@
 import { RouteRecordRaw } from 'vue-router';
 import { DeviceType } from '@/enums/app';
+
 export interface ThemeConfigProp {
     panelName: string;
     primary: string;
@@ -32,18 +33,22 @@ export interface GlobalState {
     currentRedisDB: string;
     showEntranceWarn: boolean;
     defaultNetwork: string;
-
-    isProductPro: boolean;
-    isIntl: boolean;
-    isTrial: boolean;
-    productProExpires: number;
-    licenseVerify: string;
-
     errStatus: string;
+    currentNode: string;
 }
 
 export interface MenuState {
     isCollapse: boolean;
     menuList: RouteRecordRaw[];
     withoutAnimation: boolean;
+}
+
+export interface TerminalState {
+    lineHeight: number;
+    letterSpacing: number;
+    fontSize: number;
+    cursorBlink: string;
+    cursorStyle: string;
+    scrollback: number;
+    scrollSensitivity: number;
 }
